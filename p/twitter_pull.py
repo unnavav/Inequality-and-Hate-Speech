@@ -21,32 +21,79 @@ import pandas as pd
 from datetime import timezone
 from pandas.io.json import json_normalize
 
+## FUNCTIONAL SET UP ##
+
 ## functions ##
 
+
+# input the file where your bearer token is here
 def get_bearer_token():
-	return
+	tokens_dict = {}
+	with open("../Twitter.txt") as f:
+		for line in f:
+			(key, val) = line.split()
+			tokens_dict[key] = val
+	print("Getting authentication tokens...")
+	bearer_token = tokens_dict["Bearer_Token"]
 
-def build_query(query, max_results = 500, tweet_fields, place_fields, start_time, end_time):
-	return
+	headers = {"Authorization": "Bearer {}".format(bearer_token)}
 
-def send_request(url = "https://api.twitter.com/2/tweets/search/all", bearer_token, search):
-	return
+	return(headers)
+
+#takes datetime object and turns it into a UTC string that twitter API will eat
+def convert_to_TwitTime(datetime_obj):
+	converted = datetime_obj.replace(tzinfo = timezone.utc).isoformat("T") #convert to UTC to rfc3339
+	return(converted)
+
+# takes query terms and turns them into dictionary
+def build_query(query, tweet_fields, place_fields, start_time, end_time, max_resuts = 500):
+	print("\n Building query ... ")
+
+	start_time = convert_to_TwitTime(start_time)
+	end_time = convert_to_TwitTime(end_time)
+
+	query_params = {'query': query,
+		'max_results': max_resuts, 
+		'tweet.fields': tweet_fields,
+		'place.fields': place_fields,
+		'start_time': start_time,
+		'end_time': end_time}
+
+	return(query_params)
+
+#taken from twitter example code
+def send_request(bearer_token, search_params, url = "https://api.twitter.com/2/tweets/search/all"):
+	print("\n Sending request... ")
+	response = requests.request("GET", url, headers=bearer_token, params=search_params)
+
+	if response.status_code != 200:
+		raise Exception(response.status_code, response.text)
+
+	print("data received!")
+	return response.json()
 
 def clean(json):
-	return
+	print("Converting to DataFrame...")
+	cleaned_json = json_normalize(json, "data")
+	df = pd.DataFrame.from_dict(cleaned_json)
 
+	return(df)
 
 ## main method ##
 
 def main():
 	bearer_token = get_bearer_token()
-	query = build_query()
-	query_json = send_request(url = "https://api.twitter.com/2/tweets/search/all", 
-		bearer_token = bearer_token, search = query)
+	query = build_query(query = "lang:en the -the place_country:US has:geo",
+		tweet_fields = "author_id,text,conversation_id,created_at,geo",
+		place_fields = "country,country_code",
+		start_time = datetime.datetime(2011, 6, 1, 15, 2, 0),
+		end_time = datetime.datetime(2011, 6, 1, 15, 3, 0))
+	query_json = send_request(bearer_token = bearer_token, search_params= query)
 	tweet_df = clean(query_json)
 	tweet_df.to_csv("../d/tweet_df.csv")
+	print("DF saved to disk.")
 
-## execute ## 
+## RUNNING RUNNING & RUNNING RUNNING & (https://youtu.be/IKqV7DB8Iwg) ##
 
 if __name__ == "__main__":
 	main()
