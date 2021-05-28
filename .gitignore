@@ -9,9 +9,7 @@ Twitter.txt
 
 # Session Data files
 .RData
-
-# General data as well
-.csv
+*.csv
 
 # Example code in package build process
 *-Ex.R

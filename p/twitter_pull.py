@@ -15,7 +15,7 @@
 
 ## IMPORTING PACKAGES ##
 
-import requests, os, json, datetime
+import requests, os, json, datetime, time
 import pandas as pd
 
 from datetime import timezone
@@ -46,8 +46,9 @@ def convert_to_TwitTime(datetime_obj):
 	return(converted)
 
 # takes query terms and turns them into dictionary
-def build_query(query, tweet_fields, place_fields, start_time, end_time, max_resuts = 500):
-	print("\n Building query ... ")
+def build_query(query, tweet_fields, place_fields, start_time, end_time,
+		max_resuts = 500, next_token = None):
+	print("\nBuilding query ... ")
 
 	start_time = convert_to_TwitTime(start_time)
 	end_time = convert_to_TwitTime(end_time)
@@ -62,8 +63,9 @@ def build_query(query, tweet_fields, place_fields, start_time, end_time, max_res
 	return(query_params)
 
 #taken from twitter example code
-def send_request(bearer_token, search_params, url = "https://api.twitter.com/2/tweets/search/all"):
-	print("\n Sending request... ")
+def send_request(bearer_token, search_params, url = "https://api.twitter.com/2/tweets/search/all",
+		next_token = None):
+	print("\nSending request... ")
 	response = requests.request("GET", url, headers=bearer_token, params=search_params)
 
 	if response.status_code != 200:
@@ -72,9 +74,38 @@ def send_request(bearer_token, search_params, url = "https://api.twitter.com/2/t
 	print("data received!")
 	return response.json()
 
+
+def get_data(query, bearer_token, search_params, url = "https://api.twitter.com/2/tweets/search/all"):
+	query_json = send_request(bearer_token = bearer_token, search_params= query)
+	tweet_df = clean(query_json)
+
+	if "next_token" in list(tweet_df.columns.values):
+		next_page_id = tweet_df['next_token'].loc[0]
+	else:
+		next_page_id = None
+
+	while(next_page_id!=None):
+
+		query["next_token"] = next_page_id
+
+		temp = send_request(bearer_token = bearer_token, search_params= query)
+		temp = clean(temp)
+
+		tweet_df = tweet_df.append(temp, sort = True)
+
+		if "next_token" in list(temp.columns.values):
+			next_page_id = temp['next_token'].loc[0]
+		else:
+			next_page_id = None
+
+		time.sleep(2)
+
+	return(tweet_df)
+
+
 def clean(json):
 	print("Converting to DataFrame...")
-	cleaned_json = json_normalize(json, "data")
+	cleaned_json = json_normalize(json, "data").assign(**json["meta"])
 	df = pd.DataFrame.from_dict(cleaned_json)
 
 	return(df)
@@ -86,10 +117,9 @@ def main():
 	query = build_query(query = "lang:en the -the place_country:US has:geo",
 		tweet_fields = "author_id,text,conversation_id,created_at,geo",
 		place_fields = "country,country_code",
-		start_time = datetime.datetime(2011, 6, 1, 15, 2, 0),
-		end_time = datetime.datetime(2011, 6, 1, 15, 3, 0))
-	query_json = send_request(bearer_token = bearer_token, search_params= query)
-	tweet_df = clean(query_json)
+		start_time = datetime.datetime(2011, 6, 1, 1, 2, 0),
+		end_time = datetime.datetime(2011, 6, 1, 1, 10, 10))
+	tweet_df = get_data(query, bearer_token = bearer_token, search_params= query)
 	tweet_df.to_csv("../d/tweet_df.csv")
 	print("DF saved to disk.")
 
