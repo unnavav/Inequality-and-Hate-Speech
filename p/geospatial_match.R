@@ -3,6 +3,12 @@ library(spData)
 
 
 
+
+place_geo_data = fread("place_geo_data2.csv", stringsAsFactors = F)
+
+tweets_undup = tweets_undup %>%
+  right_join(place_geo_data, by = c("geo.place_id" = "geocode"))
+
 temp = tweets %>% mutate(geo.coordinates.coordinates = str_replace(geo.coordinates.coordinates, "\\[", ""),
                          geo.coordinates.coordinates = str_replace(geo.coordinates.coordinates, "\\]", "")) %>%
   separate(geo.coordinates.coordinates, c("long", "lat"), ", ")
