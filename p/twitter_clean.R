@@ -38,24 +38,18 @@ t_2014_4 = fread("tweet_df_2014_4.csv", stringsAsFactors = F)
 t_2014_5 = fread("tweet_df_2014_5.csv", stringsAsFactors = F)
 
 tweets = t_2014_1_12 %>%
-  rbind(t_2015) %>%
+  rbind(t_2015, fill = TRUE) %>%
   rbind(t_2016, fill=TRUE) %>% # copyright and country witheld columns appear
   rbind(t_2017, fill=TRUE) %>%
   rbind(t_2018, fill = TRUE)
 
+# sending place id's to get approximate latitude longitudes
 place_ids = unique(tweets$geo.place_id)
 write.table(place_ids, "place_ids.csv", row.names = F, col.names = F)
 
 unique_ids = unique(tweets$id)
 
 tweets_undup = tweets %>% filter(id %in% unique_ids)
-
-# geospatial data
-
-place_geo_data = fread("place_geo_data2.csv", stringsAsFactors = F)
-
-tweets_undup = tweets_undup %>%
-  right_join(place_geo_data, by = c("geo.place_id" = "geocode"))
 
 ## Cleaning ----
 
@@ -66,6 +60,5 @@ tweets_undup = tweets_undup %>%
          date = as.Date(datetime)) %>%
   select(-c(created_at))
 
-
-write.csv(tweets_final, "cleaned_tweets.csv", row.names = F)
+fwrite(tweets_undup, "undup_tweets.csv", row.names = F)
 
