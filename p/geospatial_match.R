@@ -25,6 +25,7 @@ library(data.table)
 library(tidygeocoder)
 library(parallel)
 library(ggmap)
+library(tidyverse)
 
 setwd("C:/Users/unnav/Dropbox/Coding/Inequality-and-Hate-Speech/d")
 
@@ -103,5 +104,7 @@ long_lat_df = geo_tweets %>% select(long, lat) %>%
   
 long_lat_df$state = lonlat_to_state(long_lat_df)
 
-geo_tweets2 = geo_tweets %>%
+geo_tweets = geo_tweets %>%
   right_join(long_lat_df, by = c("long", "lat"))
+
+fwrite(geo_tweets, "tweets_final.csv", row.names = F)
