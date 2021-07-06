@@ -30,7 +30,6 @@ t_2017 = fread("tweet_df_2017_1_12.csv", stringsAsFactors = F)
 t_2018 = fread("tweet_df_2018_1_12.csv", stringsAsFactors = F)
 
 t_2014_1_12 = fread("tweet_df_2014_1_12.csv", stringsAsFactors = F)
-t_2014_6_12 = fread("tweet_df_2014_6_12.csv", stringsAsFactors = F)
 t_2014_1 = fread("tweet_df_2014_1.csv", stringsAsFactors = F)
 t_2014_2 = fread("tweet_df_2014_2.csv", stringsAsFactors = F)
 t_2014_3 = fread("tweet_df_2014_3.csv", stringsAsFactors = F)
@@ -60,5 +59,5 @@ tweets_undup = tweets_undup %>%
          date = as.Date(datetime)) %>%
   select(-c(created_at))
 
-fwrite(tweets_undup, "undup_tweets.csv", row.names = F)
+fwrite(tweets_undup, "undup_tweets.csv", row.names = F)s
 
