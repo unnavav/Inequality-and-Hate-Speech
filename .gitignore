@@ -1,4 +1,4 @@
-# my ~personal~ file
+# my ~personal~ files
 test_pull.py
 test_pull2.py
 Twitter.txt
@@ -10,6 +10,7 @@ Twitter.txt
 # Session Data files
 .RData
 *.csv
+*.xls
 
 # Example code in package build process
 *-Ex.R

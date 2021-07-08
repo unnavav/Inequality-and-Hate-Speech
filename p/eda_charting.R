@@ -85,7 +85,7 @@ ggplot(daily_tweets, aes(x = date, y = daily_tweets)) +
 
 dev.off()
 
-png(filename="../v/state_level_tweets.png", width=2000, height=1000)
+png(filename="../v/geo_state_level_tweets.png", width=2000, height=1000)
 
 plot_usmap(data = state_level_df, 
            values = "state_level_tweets",
@@ -94,5 +94,18 @@ plot_usmap(data = state_level_df,
   scale_fill_continuous(low = "lavender", high = "darkblue",
                         name = "No. Tweets", label = scales::comma)+
   labs(Title = "State-Level Tweets in Dataset")
+
+dev.off()
+
+png(filename="../v/state_level_tweets.png", width=2000, height=1000)
+
+sorted = state_level_df[order(state_level_df$state_level_tweets),]
+
+ggplot(sorted,
+       aes(x = reorder(state, -state_level_tweets), y = state_level_tweets)) +
+  geom_bar(stat = 'identity') +
+  theme_minimal() +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=45))
 
 dev.off()
