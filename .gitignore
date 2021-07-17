@@ -44,3 +44,4 @@ rsconnect/
 *.txt
 *.png
 p/place_id_to_long_lat.py
+*.xlsx
