@@ -23,6 +23,7 @@ library(usmap)
 setwd("C:/Users/unnav/Dropbox/Coding/Inequality-and-Hate-Speech/d")
 
 tweets_final = fread("tweets_final.csv", stringsAsFactors = F)
+controls = fread("controls.csv", stringsAsFactors = F)
 
 # mild EDA ----
 
@@ -54,6 +55,12 @@ state_level_df = eda_df %>%
   group_by(state) %>%
   summarise(state_level_tweets = n()) %>%
   filter(state!="")
+
+state_groups = controls %>%
+  select(state, treat) %>%
+  unique() %>%
+  mutate(treat = ifelse(treat == 1, "Treatment", "Control"),
+         treat = as.factor(treat))
 
 ## plotting ----
 
@@ -107,5 +114,18 @@ ggplot(sorted,
   theme_minimal() +
   theme(text = element_text(size=20),
         axis.text.x = element_text(angle=45))
+
+dev.off()
+
+png(filename="../v/state_groupings.png", width=1000, height=500)
+
+plot_usmap(data = state_groups, 
+           values = "treat",
+           regions = c("state"), 
+           color = "grey") +
+  scale_fill_brewer(type = 'qual', palette = "Pastel2", name = "Group Assignment") +
+  # scale_color_manual(values = c(`0` = "white", `1` = "blue"), na.value = "white") +
+  theme(legend.position = "right", 
+        legend.text = element_text("Group Assignment"))
 
 dev.off()
