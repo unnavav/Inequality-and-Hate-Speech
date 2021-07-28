@@ -314,14 +314,18 @@ min_wage_l = min_wage_l %>%
          ten_year_change = min_wage/lag(min_wage, 10),
          three_year_change = min_wage/lag(min_wage, 3)) %>%
   mutate(treat = ifelse((observation_date >= 2014 & 
-                        observation_date <= 2016 &
+                        observation_date < 2016 &
                         yoy_change >= 1.05), 
                         1, 0), 
          control = ifelse((ten_year_change == 1 &
-                             observation_date == 2020), 1, 0)) %>%
-  mutate(treat = max(treat, na.rm = T),
+                             observation_date == 2020), 1, 0),
+         time = ifelse(lag(yoy_change) > 1.05, 2, NA)) %>%
+  fill(time) %>%
+  mutate(time = ifelse(is.na(time), 1, time),
+         treat = max(treat, na.rm = T),
          control = max(control, na.rm = T)) %>%
-  rename("year" = "observation_date")
+  rename("year" = "observation_date") %>%
+  mutate(time = ifelse(year > 2015, 2, time)) 
 
 #### Writing Out ----
 
@@ -332,6 +336,8 @@ controls = min_wage_l %>%
   left_join(state_pop, by = c("year", "state")) %>%
   left_join(state_educ, by = c("year" = "date", "state")) %>%
   left_join(state_med_inc, by = c("year", "state"))%>%
-  left_join(race_data, by = c("year", "state"))
+  left_join(race_data, by = c("year", "state")) %>%
+  filter(treat == 1 | control == 1) %>%
+  filter(!(state %in% c("FG", "GU", "DC")))
 
 write.csv(controls, "controls.csv", row.names = F)
