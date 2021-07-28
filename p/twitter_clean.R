@@ -20,7 +20,7 @@ library(data.table)
 library(scales)
 library(stringr)
 
-setwd("C:/Users/unnav/Dropbox/Coding/Inequality-and-Hate-Speech/d")
+setwd("C:/Users/unnav/Dropbox/Coding/Inequality-and-Hate-Speech/d/twitter_data")
 
 # data import
 
