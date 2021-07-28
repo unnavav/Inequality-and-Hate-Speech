@@ -49,7 +49,7 @@ merged = merged %>%
   group_by(state, state_abbr, year) %>% 
   summarize(num_tweets = n()) %>%
   mutate(num_tweets = ifelse(year == 2014, num_tweets*4, num_tweets)) %>%
-  right_join(controls, by = c("year" = "year", "state_abbr" = "state"))
+  left_join(controls, by = c("year" = "year", "state_abbr" = "state"))
 
 #### Plotting some elementary stuff ----
 
@@ -61,12 +61,13 @@ graph = merged %>%
 graph2 = merged %>% 
   group_by(treat, year) %>%
   summarise(num_tweets_all = sum(num_tweets, na.rm = T)) %>%
-  filter(year <= 2017 & year >= 2014)
+  filter(year <= 2017 &year >= 2014) %>%
+  mutate(year = year + 1)
 
 graph3 = merged %>% 
   group_by(year, state, treat) %>%
   summarise(num_tweets_state = sum(num_tweets, na.rm = T)) %>%
-  filter(year <= 2017 & year >= 2014)
+  filter(year = 2017 & year >= 2014)
 
 graph4 = graph3 %>%
   ungroup() %>%
@@ -90,22 +91,23 @@ ggplot(graph, aes(x = three_year_change, y = chng_tweets)) +
 
 dev.off()
 
-png(filename="../v/tweet_trends.png", width=2400, height=1500, res = 300)
+png(filename="../v/tweet_trends_2.png", width=2400, height=1500, res = 300)
 
 ggplot(graph2, aes(x = year, y = num_tweets_all)) +
   geom_line(aes(color = factor(treat))) + 
   theme_minimal() +
   scale_color_discrete(name = "Group", labels = c("Control", "Treatment")) +
-  labs(x="Year", y="Number of Tweets Recorded",
-       title = "Change in Hate Speech Tweets Over Time")
+  scale_y_continuous(labels = scales::comma) +
+  labs(x="Year", y="Number of Hate Speech Tweets Recorded",
+       title = "Change in Hate Speech Tweets Over Time") + 
+  geom_rect(aes(xmin=2016, xmax=2018, ymin=60000, ymax=Inf), alpha=0.025)
 
 dev.off()
-
 
 ggplot(graph3, aes(x = year, y = num_tweets_state)) +
   geom_point() + 
   theme_minimal() +
-  scale_color_discrete(name = "Group", labels = c("Control", "Treatment")) +
+  scale_color_discrete(name = "Group", labels = c("Control", "Treatment")) 
   labs(x="Year", y="Number of Tweets Recorded",
        title = "Change in Hate Speech Tweets Over Time")
 
